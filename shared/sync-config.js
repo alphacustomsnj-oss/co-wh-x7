@@ -75,8 +75,17 @@ window.CO_SYNC = {
 
   badge(false);
   if(!CO_SYNC.anonKey){ return; }               // standalone mode
+  // The library ships INSIDE this bundle (shared/supabase.js) so no ad-blocker,
+  // firewall, or dead CDN can take the sync down. CDN kept as a fallback only.
   const s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.src = '../shared/supabase.js';
+  const cdnFallback = ()=>{
+    const c = document.createElement('script');
+    c.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    c.onload = s.onload;
+    c.onerror = ()=>badge(false);
+    document.head.appendChild(c);
+  };
   s.onload = function(){
     try{
       api.client = window.supabase.createClient(CO_SYNC.url, CO_SYNC.anonKey);
@@ -89,6 +98,6 @@ window.CO_SYNC = {
       addEventListener('offline', ()=>badge(false));
     }catch(e){ badge(false); }
   };
-  s.onerror = ()=>badge(false);
+  s.onerror = cdnFallback;
   document.head.appendChild(s);
 })();

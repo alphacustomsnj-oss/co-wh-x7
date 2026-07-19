@@ -3,7 +3,7 @@
  "short_name": "Receiving",
  "description": "Scan shipments off the truck into C&O inventory.",
  "start_url": "./index.html",
- "scope": "./",
+ "scope": "../",
  "display": "fullscreen",
  "orientation": "any",
  "background_color": "#f4f4f6",

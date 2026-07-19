@@ -3,7 +3,7 @@
  "short_name": "Auction",
  "description": "Live auction logging, fulfillment, and inventory for C&O Fragrances.",
  "start_url": "./index.html",
- "scope": "./",
+ "scope": "../",
  "display": "standalone",
  "orientation": "any",
  "background_color": "#f4f4f6",

@@ -3,7 +3,7 @@
  "short_name": "Packing",
  "description": "Scan-verified order packing for the C&O warehouse.",
  "start_url": "./index.html",
- "scope": "./",
+ "scope": "../",
  "display": "fullscreen",
  "orientation": "any",
  "background_color": "#f4f4f6",

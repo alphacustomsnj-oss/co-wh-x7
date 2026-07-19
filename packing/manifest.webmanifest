@@ -4,7 +4,7 @@
  "description": "Scan-verified order packing for the C&O warehouse.",
  "start_url": "./index.html",
  "scope": "./",
- "display": "standalone",
+ "display": "fullscreen",
  "orientation": "any",
  "background_color": "#f4f4f6",
  "theme_color": "#22b357",
@@ -21,5 +21,10 @@
    "type": "image/png",
    "purpose": "any maskable"
   }
+ ],
+ "display_override": [
+  "fullscreen",
+  "standalone",
+  "minimal-ui"
  ]
 }

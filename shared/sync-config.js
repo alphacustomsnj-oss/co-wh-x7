@@ -81,7 +81,7 @@ window.CO_SYNC = {
     const rows=[];
     const add=(ok,label,detail)=>rows.push((ok===true?'✅':ok===false?'❌':'⚠️')+' '+label+(detail?' — '+detail:''));
     add(null,'App',location.pathname.split('/').slice(-2).join('/')+' · '+(navigator.onLine?'browser online':'BROWSER OFFLINE'));
-    add(null,'Sync-config','loaded (SELFTEST v1)');
+    add(null,'Sync-config','loaded (SELFTEST v2)');
     // service worker + caches
     try{
       const reg=await navigator.serviceWorker.getRegistration();
@@ -99,7 +99,7 @@ window.CO_SYNC = {
     add(api.ready,'coSync client ready',api.ready?'yes':'no');
     // database REST ping
     try{
-      const r=await fetch(CO_SYNC.url+'/rest/v1/inventory?select=id&limit=1',{cache:'no-store',
+      const r=await fetch(CO_SYNC.url+'/rest/v1/inventory?select=number&limit=1',{cache:'no-store',
         headers:{apikey:CO_SYNC.anonKey,Authorization:'Bearer '+CO_SYNC.anonKey}});
       add(r.ok,'Supabase database','HTTP '+r.status);
     }catch(e){ add(false,'Supabase database',e.message+' ← blocked by extension/firewall?'); }
@@ -144,6 +144,7 @@ window.CO_SYNC = {
       setInterval(flush, 20000);
       addEventListener('online', ()=>{ badge(true); flush(); });
       addEventListener('offline', ()=>badge(false));
+      setInterval(()=>badge(api.ready && navigator.onLine), 10000);   // self-healing badge
     }catch(e){ badge(false); }
   };
   s.onerror = cdnFallback;

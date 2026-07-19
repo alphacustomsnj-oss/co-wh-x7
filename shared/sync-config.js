@@ -34,19 +34,24 @@ window.CO_SYNC = {
   };
   window.coSync = api;
 
+  let _badgeEl = null;   // module-level ref: every badge() call hits the SAME element (kills the double-pill race)
   function badge(live){
-    let b = document.getElementById('coSyncBadge');
-    if(!b){
-      b = document.createElement('div');
-      b.id = 'coSyncBadge';
-      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99990;font:700 11px Arial;padding:5px 11px;border-radius:99px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.25);pointer-events:auto;cursor:pointer;';
-      b.title='Tap for sync self-test';
-      b.onclick=()=>window.coSyncSelfTest && coSyncSelfTest();
-      const add = ()=>document.body ? document.body.appendChild(b) : setTimeout(add,300);
+    if(!_badgeEl){
+      _badgeEl = document.createElement('div');
+      _badgeEl.id = 'coSyncBadge';
+      _badgeEl.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99990;font:700 11px Arial;padding:5px 11px;border-radius:99px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.25);pointer-events:auto;cursor:pointer;';
+      _badgeEl.title='Tap for sync self-test';
+      _badgeEl.onclick=()=>window.coSyncSelfTest && coSyncSelfTest();
+      const add = ()=>{
+        if(document.body){
+          document.querySelectorAll('#coSyncBadge').forEach(e=>{ if(e!==_badgeEl) e.remove(); });  // nuke any strays
+          document.body.appendChild(_badgeEl);
+        } else setTimeout(add,300);
+      };
       add();
     }
-    b.textContent = live ? '● LIVE' : '○ OFFLINE';
-    b.style.color = live ? '#22b357' : '#999';
+    _badgeEl.textContent = live ? '\u25cf LIVE' : '\u25cb OFFLINE';
+    _badgeEl.style.color = live ? '#22b357' : '#999';
   }
 
   function queue(o){
@@ -81,7 +86,7 @@ window.CO_SYNC = {
     const rows=[];
     const add=(ok,label,detail)=>rows.push((ok===true?'✅':ok===false?'❌':'⚠️')+' '+label+(detail?' — '+detail:''));
     add(null,'App',location.pathname.split('/').slice(-2).join('/')+' · '+(navigator.onLine?'browser online':'BROWSER OFFLINE'));
-    add(null,'Sync-config','loaded (SELFTEST v2)');
+    add(null,'Sync-config','loaded (SELFTEST v3)');
     // service worker + caches
     try{
       const reg=await navigator.serviceWorker.getRegistration();

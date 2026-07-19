@@ -39,7 +39,9 @@ window.CO_SYNC = {
     if(!b){
       b = document.createElement('div');
       b.id = 'coSyncBadge';
-      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99990;font:700 11px Arial;padding:5px 11px;border-radius:99px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.25);pointer-events:none;';
+      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99990;font:700 11px Arial;padding:5px 11px;border-radius:99px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.25);pointer-events:auto;cursor:pointer;';
+      b.title='Tap for sync self-test';
+      b.onclick=()=>window.coSyncSelfTest && coSyncSelfTest();
       const add = ()=>document.body ? document.body.appendChild(b) : setTimeout(add,300);
       add();
     }
@@ -72,6 +74,52 @@ window.CO_SYNC = {
     for(const o of q){ if(!(await exec(o).catch(()=>false))) rest.push(o); }
     localStorage.setItem(Q_KEY, JSON.stringify(rest));
   }
+
+
+  // ---- SELF-TEST v1 (Jul 17 2026) — click the badge to run ----
+  window.coSyncSelfTest = async function(){
+    const rows=[];
+    const add=(ok,label,detail)=>rows.push((ok===true?'✅':ok===false?'❌':'⚠️')+' '+label+(detail?' — '+detail:''));
+    add(null,'App',location.pathname.split('/').slice(-2).join('/')+' · '+(navigator.onLine?'browser online':'BROWSER OFFLINE'));
+    add(null,'Sync-config','loaded (SELFTEST v1)');
+    // service worker + caches
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      const keys=await caches.keys();
+      add(null,'Service worker',(reg&&reg.active?'active':'none')+' · caches: '+(keys.join(', ')||'none'));
+    }catch(e){ add(null,'Service worker','n/a'); }
+    // local library file reachable on server?
+    try{
+      const r=await fetch('../shared/supabase.js',{method:'HEAD',cache:'no-store'});
+      add(r.ok,'Local supabase.js on server','HTTP '+r.status+(r.ok?'':' ← STALE DEPLOY: rebuild GitHub Pages'));
+    }catch(e){ add(false,'Local supabase.js on server',e.message); }
+    // library actually loaded in this page?
+    const lib=!!(window.supabase&&window.supabase.createClient);
+    add(lib,'Library loaded in page',lib?'createClient OK':'not loaded → hard refresh (Ctrl+Shift+R)');
+    add(api.ready,'coSync client ready',api.ready?'yes':'no');
+    // database REST ping
+    try{
+      const r=await fetch(CO_SYNC.url+'/rest/v1/inventory?select=id&limit=1',{cache:'no-store',
+        headers:{apikey:CO_SYNC.anonKey,Authorization:'Bearer '+CO_SYNC.anonKey}});
+      add(r.ok,'Supabase database','HTTP '+r.status);
+    }catch(e){ add(false,'Supabase database',e.message+' ← blocked by extension/firewall?'); }
+    // queued offline ops
+    let q=[]; try{ q=JSON.parse(localStorage.getItem(Q_KEY)||'[]'); }catch(_){ }
+    add(q.length===0?null:false,'Offline queue',q.length+' pending ops');
+    // render popup
+    let el=document.getElementById('coSyncTest');
+    if(el) el.remove();
+    el=document.createElement('div');
+    el.id='coSyncTest';
+    el.style.cssText='position:fixed;right:10px;bottom:44px;z-index:99999;background:#1c1c1e;color:#fff;font:12px/1.7 Menlo,Consolas,monospace;padding:14px 16px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.4);max-width:340px;white-space:pre-wrap;word-break:break-word;';
+    el.textContent=rows.join('\n');
+    const x=document.createElement('div');
+    x.textContent='✕ close';
+    x.style.cssText='margin-top:8px;color:#f0a500;cursor:pointer;font-weight:700;';
+    x.onclick=()=>el.remove();
+    el.appendChild(x);
+    document.body.appendChild(el);
+  };
 
   badge(false);
   if(!CO_SYNC.anonKey){ return; }               // standalone mode

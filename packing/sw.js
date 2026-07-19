@@ -1,4 +1,4 @@
-const CACHE = 'co-packing-v24';
+const CACHE = 'co-packing-v25';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./','./index.html'])).then(()=>self.skipWaiting()));
 });

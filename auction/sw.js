@@ -1,4 +1,4 @@
-const CACHE = 'co-auction-v59';
+const CACHE = 'co-auction-v60';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./','./index.html'])).then(()=>self.skipWaiting()));
 });
